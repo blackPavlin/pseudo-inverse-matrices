@@ -1,3 +1,3 @@
 module.exports = {
-    publicPath: "pseudo-inverse-matrices",
+    publicPath: "/pseudo-inverse-matrices/",
 }
