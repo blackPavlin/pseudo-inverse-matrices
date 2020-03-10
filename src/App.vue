@@ -93,16 +93,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-  * {
-    margin: 0;
-    padding: 0;
-  }
-
-  body, html, #app {
-    width: 100%;
-    height: 100vh;
-  }
-
   .navbar {
     border-bottom: 1px solid #dbdbdb;
   }
@@ -112,8 +102,6 @@ export default Vue.extend({
   }
 
   .main {
-    width: 100%;
-    height: 100%;
     display: flex;
   }
 
@@ -139,17 +127,33 @@ export default Vue.extend({
   }
 
   .conteiner__body {
-    width: 100%;
-    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: auto
+    margin: 2rem 0;
+    overflow: auto;
   }
 
   .number-field {
     width: 45px;
     height: 30px;
     text-align: center;
+  }
+
+  @media (max-width: 480px) {
+    .main {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .conteiner {
+      width: 100%;
+      padding: 1rem 1rem;
+    }
+
+    .conteiner__header {
+      height: 100%;
+      flex-direction: column;
+    }
   }
 </style>
