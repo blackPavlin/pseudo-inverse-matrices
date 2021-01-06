@@ -9,8 +9,20 @@
     <main class="main">
       <section class="conteiner">
         <div class="conteiner__header">
-          <input class="input is-rounded" type="number" v-model="countLine" min="1" placeholder="Строки">
-          <input class="input is-rounded" type="number" v-model="countColumn" min="1" placeholder="Столбцы">
+          <input
+            class="input is-rounded"
+            type="number"
+            v-model="countLine"
+            min="1"
+            placeholder="Строки"
+          >
+          <input
+            class="input is-rounded"
+            type="number"
+            v-model="countColumn"
+            min="1"
+            placeholder="Столбцы"
+          >
           <button class="button is-success" @click="createTable">Готово</button>
           <button class="button is-danger is-outlined" @click="clearTable">Отмена</button>
         </div>
@@ -50,7 +62,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import * as matrix from "./assets/script"
+import * as matrix from '@/assets/script';
 
 export default Vue.extend({
   name: 'App',
@@ -62,31 +74,31 @@ export default Vue.extend({
     }
   },
   methods: {
-    createTable() {
+    createTable(): void {
       if (this.countLine > this.countColumn) {
-        return alert("Количество столбцов должно быть больше или равно числу строк")
+        return alert('Количество столбцов должно быть больше или равно числу строк');
       }
 
-      const mtx = matrix.CreateMatrix(this.countLine, this.countColumn)
-      const beta = 0.6 / (matrix.NormOne(matrix.TransposingMatrix(mtx)) * matrix.NormInfinity(mtx))
+      const mtx = matrix.CreateMatrix(this.countLine, this.countColumn);
+      const beta = 0.6 / (matrix.NormOne(matrix.TransposingMatrix(mtx)) * matrix.NormInfinity(mtx));
 
-      let Xk = matrix.MultiplyMatrixByNumber(matrix.TransposingMatrix(mtx), beta)
-      let Xk1: number[][]
-      let iteration = 0
+      let Xk = matrix.MultiplyMatrixByNumber(matrix.TransposingMatrix(mtx), beta);
+      let Xk1: number[][];
+      let iteration = 0;
 
       for (let err = 1; err >= 10e-7; Xk = Xk1) {
-        Xk1 = matrix.MultiplyMatrix(Xk, matrix.DifferenceMatrix(matrix.UnitMatrix(mtx.length), matrix.MultiplyMatrix(mtx, Xk)))
-        err = matrix.NormInfinity(matrix.DifferenceMatrix(Xk1, Xk)) / ( 1 + matrix.NormInfinity(Xk))
-        iteration += 1
+        Xk1 = matrix.MultiplyMatrix(Xk, matrix.DifferenceMatrix(matrix.UnitMatrix(mtx.length), matrix.MultiplyMatrix(mtx, Xk)));
+        err = matrix.NormInfinity(matrix.DifferenceMatrix(Xk1, Xk)) / ( 1 + matrix.NormInfinity(Xk));
+        iteration += 1;
       }
 
-      console.table(Xk)
-      this.resultMatrix = Xk
+      console.table(Xk);
+      this.resultMatrix = Xk;
     },
-    clearTable() {
-      this.countLine = 1
-      this.countColumn = 1
-      this.resultMatrix = [[0]]
+    clearTable(): void {
+      this.countLine = 1;
+      this.countColumn = 1;
+      this.resultMatrix = [[0]];
     },
   }
 });
