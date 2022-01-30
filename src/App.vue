@@ -1,171 +1,166 @@
 <template>
-  <div id="app">
-    <nav class="navbar" role="navigation" aria-label="main navigation">
+  <header>
+    <nav class="navbar is-light" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
-        <div class="navbar-item page-title">Метод Бен-Израэля</div>
+        <div class="navbar-item">
+          <h1 class="title is-3">Метод Бен-Израэля</h1>
+        </div>
       </div>
     </nav>
+  </header>
+  <main class="container is-fluid">
+    <div class="notification is-danger is-light mt-5" v-if="showNotification">
+      <button class="delete" @click="showNotification = false"></button>
+      Количество столбцов должно быть <strong>больше</strong> или
+      <strong>равно</strong> числу строк
+    </div>
 
-    <main class="main">
-      <section class="conteiner">
-        <div class="conteiner__header">
-          <input
-            class="input is-rounded"
-            type="number"
-            v-model="countLine"
-            min="1"
-            placeholder="Строки"
-          >
-          <input
-            class="input is-rounded"
-            type="number"
-            v-model="countColumn"
-            min="1"
-            placeholder="Столбцы"
-          >
-          <button class="button is-success" @click="createTable">Готово</button>
-          <button class="button is-danger is-outlined" @click="clearTable">Отмена</button>
+    <section class="mt-5">
+      <form
+        @submit.prevent="onSubmit"
+        @keypress.enter.prevent="onSubmit"
+        class="box"
+      >
+        <div class="field">
+          <label class="label">Кол-во строк</label>
+          <div class="control">
+            <input
+              class="input"
+              type="number"
+              min="1"
+              v-model="lines"
+              :disabled="showMatrix"
+            />
+          </div>
         </div>
 
-        <div class="conteiner__body">
-          <table class="table is-bordered">
-            <tbody>
-              <tr v-for="m in Number(countLine)" v-bind:key="m">
-                <td v-for="n in Number(countColumn)" v-bind:key="`${m}_${n}`">
-                  <input class="number-field" :id="`${m}_${n}`">
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="field">
+          <label class="label">Кол-во столбцов</label>
+          <div class="control">
+            <input
+              class="input"
+              type="number"
+              min="1"
+              v-model="columns"
+              :disabled="showMatrix"
+            />
+          </div>
         </div>
-      </section>
 
-      <section class="conteiner">
-        <div class="conteiner__header">
-          <div class="titie">Результат:</div>
+        <div class="field is-grouped">
+          <div class="control">
+            <button class="button is-success" @click="ready">Ready</button>
+          </div>
+
+          <div class="control">
+            <button class="button is-danger" @click="reset">Reset</button>
+          </div>
+
+          <div class="control" v-if="showMatrix">
+            <button class="button is-info" @click="build">Build matrix</button>
+          </div>
         </div>
-        <div class="conteiner__body">
-          <table class="table is-bordered">
-            <tbody>
-              <tr v-for="(m, i) of resultMatrix" v-bind:key="i">
-                <td v-for="(n, l) of m" v-bind:key="`${n}_${l}`">
-                  {{ n.toFixed(3) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </main>
-  </div>
+      </form>
+    </section>
+
+    <section class="table-container mt-5">
+      <table class="table is-bordered is-flex is-justify-content-center">
+        <tbody>
+          <tr v-for="(line, i) of matrix" :key="i">
+            <td v-for="(column, j) of line" :key="getId(i, j)">
+              <input
+                type="number"
+                class="input is-normal"
+                v-model="matrix[i][j]"
+                :disabled="showInverseMatrix"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="table is-bordered is-flex is-justify-content-center">
+        <tbody>
+          <tr v-for="(line, i) of inverseMatrix" :key="i">
+            <td v-for="(column, j) of line" :key="getId(i, j)">
+              {{ Math.floor(column * 1000) / 1000 }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import * as matrix from '@/assets/script';
+import { defineComponent, ref, reactive, computed } from "vue";
+import Matrix from "@/assets/matrix";
 
-export default Vue.extend({
-  name: 'App',
-  data() {
-    return { 
-      countLine: 1,
-      countColumn: 1,
-      resultMatrix: [[0]],
-    }
+export default defineComponent({
+  name: "App",
+  setup() {
+    const lines = ref(1);
+    const columns = ref(1);
+
+    const showNotification = ref(false);
+    const showMatrix = ref(false);
+    const showInverseMatrix = ref(false);
+
+    const matrix = computed(() =>
+      showMatrix.value
+        ? reactive<number[][]>(
+            new Array(lines.value)
+              .fill([])
+              .map(() => new Array(columns.value).fill(0))
+          )
+        : []
+    );
+
+    const inverseMatrix = computed(() =>
+      showInverseMatrix.value ? Matrix.calculateInverseMatrix(matrix.value) : []
+    );
+
+    const getId = (n: number, m: number): string => String(n) + String(m);
+
+    const ready = (): void => {
+      if (lines.value > columns.value) {
+        showNotification.value = true;
+        setTimeout(() => (showNotification.value = false), 5000);
+        return;
+      }
+
+      showMatrix.value = true;
+    };
+
+    const reset = (): void => {
+      lines.value = 1;
+      columns.value = 1;
+      showNotification.value = false;
+      showMatrix.value = false;
+      showInverseMatrix.value = false;
+    };
+
+    const build = (): void => {
+      showInverseMatrix.value = true;
+    };
+
+    return {
+      lines,
+      columns,
+      showNotification,
+      showMatrix,
+      showInverseMatrix,
+      matrix,
+      inverseMatrix,
+      getId,
+      ready,
+      reset,
+      build,
+    };
   },
-  methods: {
-    createTable(): void {
-      if (this.countLine > this.countColumn) {
-        return alert('Количество столбцов должно быть больше или равно числу строк');
-      }
-
-      const mtx = matrix.CreateMatrix(this.countLine, this.countColumn);
-      const beta = 0.6 / (matrix.NormOne(matrix.TransposingMatrix(mtx)) * matrix.NormInfinity(mtx));
-
-      let Xk = matrix.MultiplyMatrixByNumber(matrix.TransposingMatrix(mtx), beta);
-      let Xk1: number[][];
-      let iteration = 0;
-
-      for (let err = 1; err >= 10e-7; Xk = Xk1) {
-        Xk1 = matrix.MultiplyMatrix(Xk, matrix.DifferenceMatrix(matrix.UnitMatrix(mtx.length), matrix.MultiplyMatrix(mtx, Xk)));
-        err = matrix.NormInfinity(matrix.DifferenceMatrix(Xk1, Xk)) / ( 1 + matrix.NormInfinity(Xk));
-        iteration += 1;
-      }
-
-      console.table(Xk);
-      this.resultMatrix = Xk;
-    },
-    clearTable(): void {
-      this.countLine = 1;
-      this.countColumn = 1;
-      this.resultMatrix = [[0]];
-    },
-  }
 });
 </script>
 
 <style lang="scss">
-  .navbar {
-    border-bottom: 1px solid #dbdbdb;
-  }
-
-  .page-title {
-    font-size: 30px;
-  }
-
-  .main {
-    display: flex;
-  }
-
-  .conteiner {
-    width: 50%;
-    height: 100%;
-    padding: 1rem 0;
-  }
-
-  .conteiner__header {
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    & input, button {
-      margin: 0.5rem
-    }
-
-    & .titie {
-      font-size: 20px;
-    }
-  }
-
-  .conteiner__body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 2rem 0;
-    overflow: auto;
-  }
-
-  .number-field {
-    width: 45px;
-    height: 30px;
-    text-align: center;
-  }
-
-  @media (max-width: 480px) {
-    .main {
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .conteiner {
-      width: 100%;
-      padding: 1rem 1rem;
-    }
-
-    .conteiner__header {
-      height: 100%;
-      flex-direction: column;
-    }
-  }
+@import "~bulma/css/bulma.min.css";
 </style>
